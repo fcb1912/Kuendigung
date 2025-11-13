@@ -120,8 +120,8 @@ app.get("/verify", async (req, res) => {
     }
 
     await axios.post("https://api.brevo.com/v3/smtp/email", {
-      sender: { email: "mitglieder@fc-badenia-stilgen.de" },
-      to: [{ email: "vorstand@fc-badenia-stilgen.de" }], // Admin-Adresse
+      sender: { email: "kuendigung@fc-badenia-stilgen.de" },
+      to: [{ email: "mitglieder@fc-badenia-stilgen.de" }], // Admin-Adresse
       subject: `Kündigung von ${data.vorname} ${data.nachname}`,
       textContent: adminText
     }, {
