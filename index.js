@@ -128,8 +128,7 @@ app.get("/verify", async (req, res) => {
       subject: `Kündigung von ${data.vorname} ${data.nachname}`,
       textContent: adminText,
       htmlContent: `
-        <h2>✅ Wir haben Ihre Kündigung erhalten</h2>
-        <p>Wir werden sie schnellstmöglich bestätigen.</p>
+        <p>✅ Wir haben Ihre Kündigung erhalten und werden sie schnellstmöglich bestätigen.</p>
 
         <h3>Mitgliedsdaten</h3>
         <p><strong>Name:</strong> ${data.vorname} ${data.nachname}<br>
@@ -160,3 +159,4 @@ app.get("/verify", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`✅ Server läuft auf Port ${PORT}`);
 });
+
