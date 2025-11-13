@@ -159,4 +159,3 @@ app.get("/verify", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`✅ Server läuft auf Port ${PORT}`);
 });
-
