@@ -1,153 +1,217 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kündigungsformular FC Badenia St. Ilgen</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kündigung FC Badenia</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      background: #f4f4f4;
+    :root {
+      --rot: #b30000;
+      --weiß: #ffffff;
+      --grau: #f5f5f5;
+      --text: #222;
     }
-    .container {
+
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      background: var(--grau);
+      color: var(--text);
+    }
+
+    header {
+      background: var(--rot);
+      color: var(--weiß);
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    header img {
+      height: 48px;
+      width: auto;
+    }
+
+    main {
       max-width: 600px;
-      margin: 20px auto;
-      background: #fff;
-      padding: 20px;
+      margin: 2rem auto;
+      background: var(--weiß);
+      padding: 1.5rem;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
+
     h1 {
-      text-align: center;
-      color: #003366;
+      margin: 0;
+      font-size: 1.5rem;
     }
+
     label {
       display: block;
-      margin-top: 15px;
+      margin-top: 1rem;
       font-weight: bold;
     }
-    input, textarea {
+
+    input, select, textarea {
       width: 100%;
-      padding: 10px;
-      margin-top: 5px;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 1em;
+      font-size: 1rem;
+      font-family: inherit;
     }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.2);
+    }
+
     button {
-      margin-top: 20px;
+      margin-top: 2rem;
       width: 100%;
-      padding: 12px;
-      background: #003366;
-      color: #fff;
+      padding: 0.8rem;
+      background: var(--rot);
+      color: var(--weiß);
       border: none;
       border-radius: 4px;
-      font-size: 1.1em;
+      font-size: 1.1rem;
       cursor: pointer;
     }
+
     button:hover {
-      background: #0055aa;
+      background: #990000;
     }
-    .note {
-      font-size: 0.9em;
-      color: #666;
-      margin-top: 10px;
+
+    #feedback {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #e6ffe6;
+      border: 1px solid #66cc66;
+      border-radius: 4px;
+      color: #006600;
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      main {
+        margin: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.3rem;
+      }
+
+      header {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Kündigungsformular</h1>
+  <header>
+    <img src="logo.png" alt="FC Badenia Logo" />
+    <h1>Kündigung FC Badenia St. Ilgen</h1>
+  </header>
+
+  <main>
     <form id="kuendigungForm">
-      <!-- Mitgliedsdaten -->
       <label for="vorname">Vorname Mitglied</label>
-      <input type="text" id="vorname" required>
+      <input type="text" id="vorname" name="mitglied_vorname" required />
 
-      <label for="nachname">Nachname Mitglied</label>
-      <input type="text" id="nachname" required>
+      <label for="nachname">Name Mitglied</label>
+      <input type="text" id="nachname" name="mitglied_nachname" required />
 
-      <label for="geburtsdatum">Geburtsdatum Mitglied</label>
-      <input type="date" id="geburtsdatum" required>
+      <label for="geburtsdatum">Geburtsdatum</label>
+      <input type="date" id="geburtsdatum" name="geburtsdatum" required max="2025-12-31" />
 
-      <!-- E-Mail -->
+      <label for="elternName" id="elternLabel" style="display: none;">Vorname und Name der erziehungsberechtigten Person</label>
+      <input type="text" id="elternName" name="elternName" style="display: none;" />
+
       <label for="email">E-Mail</label>
-      <input type="email" id="email" required>
+      <input type="email" id="email" name="email" required />
 
-      <!-- Telefonnummer -->
-      <label for="telefon">Telefonnummer</label>
-      <input type="tel" id="telefon" pattern="\\+?[0-9\\s\\-]+" placeholder="+49 123 456789" required>
+      <label for="telefon">Telefon</label>
+      <input type="tel" id="telefon" name="telefon" required />
 
-      <!-- Erziehungsberechtigter -->
-      <label for="elternName">Name Erziehungsberechtigter (falls Mitglied <18)</label>
-      <input type="text" id="elternName">
-
-      <!-- Grund/Bemerkung -->
-      <label for="bemerkung">Grund/Bemerkung (optional)</label>
-      <textarea id="bemerkung" rows="3"></textarea>
+      <label for="bemerkung">Bemerkung (optional)</label>
+      <textarea id="bemerkung" name="bemerkung" rows="3"></textarea>
 
       <button type="submit">Kündigung absenden</button>
-      <p class="note">Hinweis: Bei Mitgliedern unter 18 Jahren muss die E-Mailadresse des Erziehungsberechtigten angegeben werden.</p>
     </form>
-  </div>
+
+    <div id="feedback"></div>
+  </main>
 
   <script>
-    const form = document.getElementById("kuendigungForm");
-    const geburtsdatumInput = document.getElementById("geburtsdatum");
-    const elternNameInput = document.getElementById("elternName");
-
-    // Altersprüfung: <18 → Feld "Erziehungsberechtigter" required
-    geburtsdatumInput.addEventListener("change", () => {
-      const geburtsdatum = new Date(geburtsdatumInput.value);
+    function berechneAlter(geburtsdatum) {
       const heute = new Date();
-      let alter = heute.getFullYear() - geburtsdatum.getFullYear();
-      const m = heute.getMonth() - geburtsdatum.getMonth();
-      if (m < 0 || (m === 0 && heute.getDate() < geburtsdatum.getDate())) {
+      const geb = new Date(geburtsdatum);
+      let alter = heute.getFullYear() - geb.getFullYear();
+      const m = heute.getMonth() - geb.getMonth();
+      if (m < 0 || (m === 0 && heute.getDate() < geb.getDate())) {
         alter--;
       }
+      return alter;
+    }
+
+    document.getElementById("geburtsdatum").addEventListener("change", function () {
+      const alter = berechneAlter(this.value);
+      const elternFeld = document.getElementById("elternName");
+      const elternLabel = document.getElementById("elternLabel");
 
       if (alter < 18) {
-        elternNameInput.required = true;
+        elternFeld.style.display = "block";
+        elternLabel.style.display = "block";
       } else {
-        elternNameInput.required = false;
+        elternFeld.style.display = "none";
+        elternLabel.style.display = "none";
+        elternFeld.value = "";
       }
     });
 
-    form.addEventListener("submit", async (e) => {
+    document.getElementById("kuendigungForm").addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const mitglied_vorname = document.getElementById("vorname").value;
-      const mitglied_nachname = document.getElementById("nachname").value;
-      const geburtsdatum = document.getElementById("geburtsdatum").value;
-      const email = document.getElementById("email").value;
-      const telefon = document.getElementById("telefon").value;
-      const elternName = document.getElementById("elternName").value;
-      const bemerkung = document.getElementById("bemerkung").value;
+      const form = e.target;
+      const feedback = document.getElementById("feedback");
+      feedback.style.display = "none";
+
+      const data = {
+        mitglied_vorname: form.vorname.value.trim(),
+        mitglied_nachname: form.nachname.value.trim(),
+        geburtsdatum: form.geburtsdatum.value,
+        email: form.email.value.trim(),
+        telefon: form.telefon.value.trim(),
+        elternName: form.elternName.value.trim(),
+        bemerkung: form.bemerkung.value.trim()
+      };
 
       try {
         const response = await fetch("https://kuendigung.onrender.com/submit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            mitglied_vorname,
-            mitglied_nachname,
-            geburtsdatum,
-            email,
-            telefon,
-            elternName,
-            bemerkung
-          })
+          body: JSON.stringify(data)
         });
 
         const result = await response.json();
+
         if (result.ok) {
-          alert("✅ Bestätigungsmail wurde verschickt. Bitte prüfen Sie Ihr Postfach.");
+          feedback.textContent = "✅ Die Bestätigungsmail wurde verschickt. Bitte prüfen Sie Ihr Postfach.";
+          feedback.style.display = "block";
+          form.reset();
+          document.getElementById("elternName").style.display = "none";
+          document.getElementById("elternLabel").style.display = "none";
         } else {
-          alert("❌ Fehler beim Absenden: " + result.message);
+          feedback.textContent = "❌ Fehler: " + result.message;
+          feedback.style.display = "block";
         }
       } catch (err) {
-        console.error("Fehler:", err);
-        alert("❌ Es ist ein technischer Fehler aufgetreten.");
+        console.error("Fehler beim Senden:", err);
+        feedback.textContent = "❌ Es gab ein technisches Problem. Bitte versuchen Sie es später erneut.";
+        feedback.style.display = "block";
       }
     });
   </script>
