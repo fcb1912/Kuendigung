@@ -156,7 +156,7 @@ app.get("/verify", async (req, res) => {
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Kündigung bestätigt</title>
+        <title>E-Mailadresse bestätigt</title>
         <style>
           body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #222; text-align: center; padding: 2rem; }
           .box { background: #ffffff; border: 2px solid #b30000; border-radius: 8px; padding: 2rem; max-width: 500px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -167,7 +167,6 @@ app.get("/verify", async (req, res) => {
       </head>
       <body>
         <div class="box">
-          <h1>✅ Kündigung bestätigt</h1>
           <p>Die E-Mailadresse wurde erfolgreich bestätigt.</p>
           <button onclick="window.close()">Fenster schließen</button>
         </div>
