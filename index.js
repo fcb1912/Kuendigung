@@ -6,20 +6,17 @@ const crypto = require("crypto");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-
-// Speicher für Tokens (später DB möglich)
 const tokens = new Map();
 
 app.use(express.json());
 app.use(cors({
   origin: [
-    "https://fcb1912.github.io", // GitHub Pages
-    "http://localhost:5500",     // Lokale Tests
-    "null"                       // Direktes Öffnen der Datei im Browser
+    "https://fcb1912.github.io",
+    "http://localhost:5500",
+    "null"
   ]
 }));
 
-// Hilfsfunktion: Alter berechnen
 function berechneAlter(geburtsdatum) {
   const heute = new Date();
   const geb = new Date(geburtsdatum);
@@ -31,7 +28,6 @@ function berechneAlter(geburtsdatum) {
   return alter;
 }
 
-// Formular-Route
 app.post("/submit", async (req, res) => {
   const { mitglied_vorname, mitglied_nachname, geburtsdatum, email, telefon, bemerkung, elternName } = req.body;
 
@@ -44,7 +40,7 @@ app.post("/submit", async (req, res) => {
   tokens.set(token, { vorname: mitglied_vorname, nachname: mitglied_nachname, geburtsdatum, email, telefon, bemerkung, elternName, alter });
 
   try {
-    let empfaengerText = alter < 18 ? (elternName || "Erziehungsberechtigter") : mitglied_vorname;
+    const empfaengerText = alter < 18 ? (elternName || "Erziehungsberechtigter") : mitglied_vorname;
     const verifyLink = `https://kuendigung.onrender.com/verify?token=${token}`;
 
     await axios.post("https://api.brevo.com/v3/smtp/email", {
@@ -54,7 +50,7 @@ app.post("/submit", async (req, res) => {
       textContent: `Hallo ${empfaengerText},
 
 Bitte bestätigen Sie die Kündigung von ${mitglied_vorname} ${mitglied_nachname}.
-Hier der Bestätigungslink (kopieren Sie ihn in den Browser, falls er nicht anklickbar ist):
+Hier der Bestätigungslink:
 ${verifyLink}
 
 Sportliche Grüße,
@@ -63,8 +59,7 @@ FC Badenia St. Ilgen`,
         <p>Hallo ${empfaengerText},</p>
         <p>Bitte bestätigen Sie die Kündigung von <strong>${mitglied_vorname} ${mitglied_nachname}</strong>.</p>
         <p>
-          <a href="${verifyLink}" 
-             style="display:inline-block;padding:10px 14px;background:#003366;color:#fff;text-decoration:none;border-radius:4px;">
+          <a href="${verifyLink}" style="display:inline-block;padding:10px 14px;background:#b30000;color:#fff;text-decoration:none;border-radius:4px;">
             Kündigung bestätigen
           </a>
         </p>
@@ -80,7 +75,6 @@ FC Badenia St. Ilgen`,
       }
     });
 
-    console.log("Verify-Link:", verifyLink);
     res.json({ ok: true, message: "Bestätigungsmail gesendet." });
   } catch (err) {
     console.error("❌ Fehler beim Mailversand:", err.response?.data || err.message);
@@ -88,13 +82,32 @@ FC Badenia St. Ilgen`,
   }
 });
 
-// Verify-Route
 app.get("/verify", async (req, res) => {
   const { token } = req.query;
   const data = tokens.get(token);
 
   if (!data) {
-    return res.status(400).send("❌ Ungültiger oder abgelaufener Link.");
+    return res.send(`
+      <!DOCTYPE html>
+      <html lang="de">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Ungültiger Link</title>
+        <style>
+          body { font-family: system-ui, sans-serif; background: #fff0f0; color: #990000; text-align: center; padding: 2rem; }
+          .box { background: #fff; border: 2px solid #990000; border-radius: 8px; padding: 2rem; max-width: 500px; margin: auto; }
+          h1 { margin-bottom: 1rem; }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <h1>❌ Ungültiger oder abgelaufener Link</h1>
+          <p>Bitte prüfen Sie Ihre E-Mail oder wenden Sie sich an den Verein.</p>
+        </div>
+      </body>
+      </html>
+    `);
   }
 
   try {
@@ -102,44 +115,32 @@ app.get("/verify", async (req, res) => {
     adminText += `--- Mitgliedsdaten ---\n`;
     adminText += `Name: ${data.vorname} ${data.nachname}\n`;
     adminText += `Geburtsdatum: ${data.geburtsdatum} (Alter: ${data.alter})\n\n`;
-
     adminText += `--- Kontakt ---\n`;
     adminText += `E-Mail: ${data.email}\n`;
     adminText += `Telefon: ${data.telefon || "-"}\n\n`;
-
     if (data.alter < 18) {
-      adminText += `--- Erziehungsberechtigter ---\n`;
-      adminText += `${data.elternName || "-"}\n\n`;
+      adminText += `--- Erziehungsberechtigte Person ---\n${data.elternName || "-"}\n\n`;
     }
-
     if (data.bemerkung) {
-      adminText += `--- Bemerkung ---\n`;
-      adminText += `${data.bemerkung}\n\n`;
+      adminText += `--- Bemerkung ---\n${data.bemerkung}\n\n`;
     }
 
     await axios.post("https://api.brevo.com/v3/smtp/email", {
       sender: { email: "mitglieder@fc-badenia-stilgen.de" },
-      to: [
-        { email: data.email } // Anwender bekommt die Bestätigung
-      ],
-      cc: [
-        { email: "mitglieder@fc-badenia-stilgen.de" } // Verein bekommt Kopie
-      ],
+      to: [{ email: data.email }],
+      cc: [{ email: "mitglieder@fc-badenia-stilgen.de" }],
       subject: `Kündigung von ${data.vorname} ${data.nachname}`,
       textContent: adminText,
       htmlContent: `
-        <p>✅ Wir haben Ihre Kündigung erhalten und werden sie schnellstmöglich bestätigen.</p>
-
+        <h2>✅ Wir haben Ihre Kündigung erhalten</h2>
+        <p>Wir werden sie schnellstmöglich bestätigen.</p>
         <h3>Mitgliedsdaten</h3>
         <p><strong>Name:</strong> ${data.vorname} ${data.nachname}<br>
         <strong>Geburtsdatum:</strong> ${data.geburtsdatum} (Alter: ${data.alter})</p>
-
         <h3>Kontakt</h3>
         <p><strong>E-Mail:</strong> ${data.email}<br>
         <strong>Telefon:</strong> ${data.telefon || "-"}</p>
-
-        ${data.alter < 18 ? `<h3>Erziehungsberechtigter</h3><p>${data.elternName || "-"}</p>` : ""}
-
+        ${data.alter < 18 ? `<h3>Erziehungsberechtigte Person</h3><p>${data.elternName || "-"}</p>` : ""}
         ${data.bemerkung ? `<h3>Bemerkung</h3><p>${data.bemerkung}</p>` : ""}
       `
     }, {
@@ -150,63 +151,28 @@ app.get("/verify", async (req, res) => {
     });
 
     res.send(`
-  <!DOCTYPE html>
-  <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kündigung bestätigt</title>
-    <style>
-      body {
-        font-family: system-ui, sans-serif;
-        background: #f5f5f5;
-        color: #222;
-        text-align: center;
-        padding: 2rem;
-      }
-      .box {
-        background: #ffffff;
-        border: 2px solid #b30000;
-        border-radius: 8px;
-        padding: 2rem;
-        max-width: 500px;
-        margin: auto;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      }
-      h1 {
-        color: #b30000;
-        margin-bottom: 1rem;
-      }
-      button {
-        margin-top: 2rem;
-        padding: 0.6rem 1.2rem;
-        background: #b30000;
-        color: #fff;
-        border: none;
-        border-radius: 4px;
-        font-size: 1rem;
-        cursor: pointer;
-      }
-      button:hover {
-        background: #990000;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="box">
-      <h1>✅ Kündigung bestätigt</h1>
-      <p>Die E-Mailadresse wurde erfolgreich bestätigt.</p>
-      <button onclick="window.close()">Fenster schließen</button>
-    </div>
-  </body>
-  </html>
-`);
+      <!DOCTYPE html>
+      <html lang="de">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Kündigung bestätigt</title>
+        <style>
+          body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #222; text-align: center; padding: 2rem; }
+          .box { background: #ffffff; border: 2px solid #b30000; border-radius: 8px; padding: 2rem; max-width: 500px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+          h1 { color: #b30000; margin-bottom: 1rem; }
+          button { margin-top: 2rem; padding: 0.6rem 1.2rem; background: #b30000; color: #fff; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+          button:hover { background: #990000; }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <h1>✅ Kündigung bestätigt</h1>
+          <p>Die E-Mailadresse wurde erfolgreich bestätigt.</p>
+          <button onclick="window.close()">Fenster schließen</button>
+        </div>
+      </body>
+      </html>
+    `);
   } catch (err) {
-    console.error("❌ Fehler beim Admin-Mailversand:", err.response?.data || err.message);
-    res.status(500).send("Fehler beim Admin-Mailversand.");
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`✅ Server läuft auf Port ${PORT}`);
-});
+    console.error("❌ Fehler beim Admin-Mailversand:",
