@@ -175,3 +175,12 @@ app.get("/verify", async (req, res) => {
     `);
   } catch (err) {
     console.error("❌ Fehler beim Admin-Mailversand:",
+  } catch (err) {
+    console.error("❌ Fehler beim Admin-Mailversand:", err.response?.data || err.message);
+    res.status(500).send("Fehler beim Versand der Admin-Mail.");
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Server läuft auf Port ${PORT}`);
+});
