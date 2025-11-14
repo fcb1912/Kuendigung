@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kündigung FC Badenia 1912 St. Ilgen e. V.</title>
+  <title>Kündigung FC Badenia St. Ilgen</title>
+
   <style>
     :root {
       --rot: #b30000;
@@ -31,7 +32,6 @@
 
     header img {
       height: 48px;
-      width: auto;
     }
 
     main {
@@ -54,7 +54,7 @@
       font-weight: bold;
     }
 
-    input, select, textarea {
+    input, textarea {
       width: 100%;
       padding: 0.6rem;
       margin-top: 0.3rem;
@@ -62,10 +62,6 @@
       border-radius: 4px;
       font-size: 1rem;
       font-family: inherit;
-    }
-
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      filter: invert(0.2);
     }
 
     button {
@@ -93,23 +89,9 @@
       color: #006600;
       display: none;
     }
-
-    @media (max-width: 480px) {
-      main {
-        margin: 1rem;
-        padding: 1rem;
-      }
-
-      h1 {
-        font-size: 1.3rem;
-      }
-
-      header {
-        flex-direction: column;
-      }
-    }
   </style>
 </head>
+
 <body>
   <header>
     <img src="logo.png" alt="FC Badenia Logo" />
@@ -118,26 +100,27 @@
 
   <main>
     <form id="kuendigungForm">
-      <label for="vorname">Vorname Mitglied</label>
-      <input type="text" id="vorname" name="mitglied_vorname" required />
 
-      <label for="nachname">Name Mitglied</label>
-      <input type="text" id="nachname" name="mitglied_nachname" required />
+      <label>Vorname Mitglied</label>
+      <input type="text" name="vorname" required>
 
-      <label for="geburtsdatum">Geburtsdatum</label>
-      <input type="date" id="geburtsdatum" name="geburtsdatum" required max="2025-12-31" />
+      <label>Name Mitglied</label>
+      <input type="text" name="nachname" required>
 
-      <label for="elternName" id="elternLabel" style="display: none;">Vorname und Name der erziehungsberechtigten Person</label>
-      <input type="text" id="elternName" name="elternName" style="display: none;" />
+      <label>Geburtsdatum</label>
+      <input type="date" name="geburtsdatum" id="geburtsdatum" required>
 
-      <label for="email">E-Mail</label>
-      <input type="email" id="email" name="email" required />
+      <label id="elternLabel" style="display:none;">Erziehungsberechtigte Person</label>
+      <input type="text" name="elternName" id="elternName" style="display:none;">
 
-      <label for="telefon">Telefon</label>
-      <input type="tel" id="telefon" name="telefon" required />
+      <label>E-Mail</label>
+      <input type="email" name="email" required>
 
-      <label for="bemerkung">Bemerkung (optional)</label>
-      <textarea id="bemerkung" name="bemerkung" rows="3"></textarea>
+      <label>Telefon</label>
+      <input type="tel" name="telefon" required>
+
+      <label>Bemerkung (optional)</label>
+      <textarea name="bemerkung" rows="3"></textarea>
 
       <button type="submit">Kündigung absenden</button>
     </form>
@@ -146,38 +129,35 @@
   </main>
 
   <script>
-    function berechneAlter(geburtsdatum) {
+    function berechneAlter(datum) {
       const heute = new Date();
-      const geb = new Date(geburtsdatum);
+      const geb = new Date(datum);
       let alter = heute.getFullYear() - geb.getFullYear();
       const m = heute.getMonth() - geb.getMonth();
-      if (m < 0 || (m === 0 && heute.getDate() < geb.getDate())) {
-        alter--;
-      }
+      if (m < 0 || (m === 0 && heute.getDate() < geb.getDate())) alter--;
       return alter;
     }
 
     document.getElementById("geburtsdatum").addEventListener("change", function () {
       const alter = berechneAlter(this.value);
-      const elternFeld = document.getElementById("elternName");
-      const elternLabel = document.getElementById("elternLabel");
+      const label = document.getElementById("elternLabel");
+      const feld = document.getElementById("elternName");
 
       if (alter < 18) {
-        elternFeld.style.display = "block";
-        elternLabel.style.display = "block";
+        label.style.display = "block";
+        feld.style.display = "block";
       } else {
-        elternFeld.style.display = "none";
-        elternLabel.style.display = "none";
-        elternFeld.value = "";
+        label.style.display = "none";
+        feld.style.display = "none";
+        feld.value = "";
       }
     });
 
-    document.getElementById("kuendigungForm").addEventListener("submit", async function (e) {
+    document.getElementById("kuendigungForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const form = e.target;
       const feedback = document.getElementById("feedback");
-      feedback.style.display = "none";
 
       const data = {
         mitglied_vorname: form.vorname.value.trim(),
@@ -198,23 +178,22 @@
 
         const result = await response.json();
 
+        feedback.style.display = "block";
+
         if (result.ok) {
-          feedback.textContent = "✅ Die Bestätigungsmail wurde verschickt. Bitte prüfen Sie Ihr Postfach.";
-          feedback.style.display = "block";
+          feedback.textContent = "✅ Bestätigungsmail wurde verschickt.";
           form.reset();
-          document.getElementById("elternName").style.display = "none";
           document.getElementById("elternLabel").style.display = "none";
+          document.getElementById("elternName").style.display = "none";
         } else {
           feedback.textContent = "❌ Fehler: " + result.message;
-          feedback.style.display = "block";
         }
-      } catch (err) {
-        console.error("Fehler beim Senden:", err);
-        feedback.textContent = "❌ Es gab ein technisches Problem. Bitte versuchen Sie es später erneut.";
+
+      } catch {
         feedback.style.display = "block";
+        feedback.textContent = "❌ Technischer Fehler. Bitte später erneut versuchen.";
       }
     });
   </script>
 </body>
-
 </html>
