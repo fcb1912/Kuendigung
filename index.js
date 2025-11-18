@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
@@ -7,7 +8,6 @@ const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
 // --- Logging in Datei (nur technische Daten) ---
 const LOG_PATH = path.join(__dirname, "logs.txt");
@@ -61,6 +61,15 @@ function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// --- Hilfs: deutsches Datum TT.MM.JJJJ ---
+function formatGermanDate(dateStr) {
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}.${month}.${year}`;
+}
+
 // --- Route: Submit (erstellt Code & sendet E-Mail) ---
 app.post("/submit", async (req, res) => {
   try {
@@ -71,7 +80,8 @@ app.post("/submit", async (req, res) => {
       email,
       telefon,
       bemerkung,
-      elternName
+      elternName,
+      resend
     } = req.body || {};
 
     if (!email || !telefon) {
@@ -126,7 +136,7 @@ app.post("/submit", async (req, res) => {
         },
         {
           headers: {
-            "api-key": BREVO_API_KEY,
+            "api-key": process.env.BREVO_API_KEY,
             "Content-Type": "application/json"
           }
         }
@@ -155,6 +165,7 @@ app.post("/verify-code", async (req, res) => {
     }
 
     const entry = tokens.get(code);
+
     if (!entry) {
       logEvent("WARN", "Ungültiger oder abgelaufener Code eingegeben", { codeHash: hashValue(code) });
       return res.json({ ok: false, message: "Ungültiger oder abgelaufener Code." });
@@ -174,7 +185,7 @@ app.post("/verify-code", async (req, res) => {
     }
 
     const data = entry.data;
-    tokens.delete(code); // einmalig
+    tokens.delete(code);
 
     const logoUrl = "https://fcb1912.github.io/kuendigung/logo.png";
     const htmlMail = `
@@ -191,7 +202,7 @@ app.post("/verify-code", async (req, res) => {
         <h3 style="color:#b30000;">Mitgliedsdaten</h3>
         <p>
           <strong>Name:</strong> ${data.vorname} ${data.nachname}<br>
-          <strong>Geburtsdatum:</strong> ${data.geburtsdatum} (Alter: ${data.alter})
+          <strong>Geburtsdatum:</strong> ${formatGermanDate(data.geburtsdatum)} (Alter: ${data.alter})
         </p>
 
         <h3 style="color:#b30000;">Kontakt</h3>
@@ -201,6 +212,7 @@ app.post("/verify-code", async (req, res) => {
         </p>
 
         ${data.alter < 18 ? `<h3 style="color:#b30000;">Erziehungsberechtigte Person</h3><p>${data.elternName || "-"}</p>` : ""}
+
         ${data.bemerkung ? `<h3 style="color:#b30000;">Bemerkung</h3><p>${data.bemerkung}</p>` : ""}
 
         <hr style="margin:20px 0;">
@@ -212,7 +224,7 @@ app.post("/verify-code", async (req, res) => {
 Kündigung bestätigt
 
 Name: ${data.vorname} ${data.nachname}
-Geburtsdatum: ${data.geburtsdatum} (Alter: ${data.alter})
+Geburtsdatum: ${formatGermanDate(data.geburtsdatum)} (Alter: ${data.alter})
 E-Mail: ${data.email}
 Telefon: ${data.telefon}
 ${data.alter < 18 ? `Erziehungsberechtigte Person: ${data.elternName}` : ""}
@@ -232,7 +244,7 @@ ${data.bemerkung ? `Bemerkung: ${data.bemerkung}` : ""}
         },
         {
           headers: {
-            "api-key": BREVO_API_KEY,
+            "api-key": process.env.BREVO_API_KEY,
             "Content-Type": "application/json"
           }
         }
@@ -251,7 +263,7 @@ ${data.bemerkung ? `Bemerkung: ${data.bemerkung}` : ""}
   }
 });
 
-// Periodische Aufräumfunktion: entferne abgelaufene Tokens
+// --- Cleanup abgelaufener Tokens ---
 setInterval(() => {
   const now = Date.now();
   for (const [code, entry] of tokens.entries()) {
@@ -262,7 +274,7 @@ setInterval(() => {
   }
 }, 60 * 1000);
 
-// Start server
+// --- Server starten ---
 app.listen(PORT, () => {
   logEvent("INFO", `Server gestartet auf Port ${PORT}`, { port: PORT });
   console.log(`✅ Server läuft auf Port ${PORT}`);
