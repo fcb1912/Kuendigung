@@ -194,7 +194,7 @@ app.post("/verify-code", async (req, res) => {
           <img src="${logoUrl}" alt="FC Badenia Logo" style="height:80px;">
         </div>
 
-        <h2 style="color:#b30000;">Kündigung bestätigt</h2>
+        <h2 style="color:#b30000;">Kündigung eingegangen</h2>
         <p>Wir haben Ihre Kündigung erhalten und werden sie schnellstmöglich bearbeiten.</p>
 
         <hr style="margin:20px 0;">
@@ -221,7 +221,7 @@ app.post("/verify-code", async (req, res) => {
     `;
 
     const textMail = `
-Kündigung bestätigt
+Kündigung eingegangen
 
 Name: ${data.vorname} ${data.nachname}
 Geburtsdatum: ${formatGermanDate(data.geburtsdatum)} (Alter: ${data.alter})
@@ -238,7 +238,7 @@ ${data.bemerkung ? `Bemerkung: ${data.bemerkung}` : ""}
           sender: { email: "mitglieder@fc-badenia-stilgen.de" },
           to: [{ email: data.email }],
           cc: [{ email: "mitglieder@fc-badenia-stilgen.de" }],
-          subject: `Kündigung bestätigt – ${data.vorname} ${data.nachname}`,
+          subject: `Kündigung eingegangen – ${data.vorname} ${data.nachname}`,
           htmlContent: htmlMail,
           textContent: textMail
         },
@@ -250,8 +250,8 @@ ${data.bemerkung ? `Bemerkung: ${data.bemerkung}` : ""}
         }
       );
 
-      logEvent("INFO", "Kündigung final bestätigt & Bestätigungsmail verschickt", { codeHash: hashValue(code) });
-      return res.json({ ok: true, message: "Kündigung bestätigt." });
+      logEvent("INFO", "Kündigung final eingegangen & Bestätigungsmail verschickt", { codeHash: hashValue(code) });
+      return res.json({ ok: true, message: "Kündigung eingegangen." });
     } catch (err) {
       logEvent("ERROR", "Fehler beim Versenden der finalen Bestätigungsmail", { codeHash: hashValue(code), error: err?.response?.data || err.message });
       return res.status(500).json({ ok: false, message: "Fehler beim Versenden der Bestätigungsmail." });
