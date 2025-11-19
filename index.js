@@ -61,15 +61,6 @@ function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// --- Hilfs: deutsches Datum TT.MM.JJJJ ---
-function formatGermanDate(dateStr) {
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${day}.${month}.${year}`;
-}
-
 // --- Route: Submit (erstellt Code & sendet E-Mail) ---
 app.post("/submit", async (req, res) => {
   try {
@@ -90,6 +81,7 @@ app.post("/submit", async (req, res) => {
     }
 
     const alter = berechneAlter(geburtsdatum);
+
     const code = generateCode();
     const codeHash = hashValue(code);
 
@@ -142,7 +134,7 @@ app.post("/submit", async (req, res) => {
         }
       );
 
-      logEvent("INFO", "Bestätigungsmail versandt", { codeHash });
+      logEvent("INFO", "Bestätigungsmail versandt (send request OK)", { codeHash });
       return res.json({ ok: true, message: "Bestätigungscode versendet." });
     } catch (err) {
       logEvent("ERROR", "Fehler beim Mailversand", { codeHash, error: err?.response?.data || err.message });
@@ -187,7 +179,8 @@ app.post("/verify-code", async (req, res) => {
     const data = entry.data;
     tokens.delete(code);
 
-    const logoUrl = "https://fcb1912.github.io/kuendigung/logo.png";
+    const logoUrl = "https://fcb1912.github.io/Kuendigung/logo.png"; // Logo-URL
+
     const htmlMail = `
       <div style="font-family:Arial, sans-serif; color:#222; padding:20px;">
         <div style="text-align:center; margin-bottom:20px;">
@@ -202,7 +195,7 @@ app.post("/verify-code", async (req, res) => {
         <h3 style="color:#b30000;">Mitgliedsdaten</h3>
         <p>
           <strong>Name:</strong> ${data.vorname} ${data.nachname}<br>
-          <strong>Geburtsdatum:</strong> ${formatGermanDate(data.geburtsdatum)} (Alter: ${data.alter})
+          <strong>Geburtsdatum:</strong> ${data.geburtsdatum} (Alter: ${data.alter})
         </p>
 
         <h3 style="color:#b30000;">Kontakt</h3>
@@ -212,7 +205,6 @@ app.post("/verify-code", async (req, res) => {
         </p>
 
         ${data.alter < 18 ? `<h3 style="color:#b30000;">Erziehungsberechtigte Person</h3><p>${data.elternName || "-"}</p>` : ""}
-
         ${data.bemerkung ? `<h3 style="color:#b30000;">Bemerkung</h3><p>${data.bemerkung}</p>` : ""}
 
         <hr style="margin:20px 0;">
@@ -220,15 +212,14 @@ app.post("/verify-code", async (req, res) => {
       </div>
     `;
 
-    const textMail = `
-Kündigung eingegangen
+    const textMail = `Kündigung eingegangen
 
 Name: ${data.vorname} ${data.nachname}
-Geburtsdatum: ${formatGermanDate(data.geburtsdatum)} (Alter: ${data.alter})
+Geburtsdatum: ${data.geburtsdatum} (Alter: ${data.alter})
 E-Mail: ${data.email}
 Telefon: ${data.telefon}
-${data.alter < 18 ? `Erziehungsberechtigte Person: ${data.elternName}` : ""}
-${data.bemerkung ? `Bemerkung: ${data.bemerkung}` : ""}
+${data.alter<18 ? "Erziehungsberechtigte Person: "+data.elternName+"\n":""}
+${data.bemerkung? "Bemerkung: "+data.bemerkung:""}
     `;
 
     try {
@@ -250,10 +241,10 @@ ${data.bemerkung ? `Bemerkung: ${data.bemerkung}` : ""}
         }
       );
 
-      logEvent("INFO", "Kündigung final eingegangen & Bestätigungsmail verschickt", { codeHash: hashValue(code) });
+      logEvent("INFO", "Kündigung eingegangen & Bestätigungsmail verschickt", { codeHash: hashValue(code) });
       return res.json({ ok: true, message: "Kündigung eingegangen." });
     } catch (err) {
-      logEvent("ERROR", "Fehler beim Versenden der finalen Bestätigungsmail", { codeHash: hashValue(code), error: err?.response?.data || err.message });
+      logEvent("ERROR", "Fehler beim Versenden der finalen Mail", { codeHash: hashValue(code), error: err?.response?.data || err.message });
       return res.status(500).json({ ok: false, message: "Fehler beim Versenden der Bestätigungsmail." });
     }
 
@@ -263,7 +254,7 @@ ${data.bemerkung ? `Bemerkung: ${data.bemerkung}` : ""}
   }
 });
 
-// --- Cleanup abgelaufener Tokens ---
+// --- Periodische Aufräumfunktion ---
 setInterval(() => {
   const now = Date.now();
   for (const [code, entry] of tokens.entries()) {
