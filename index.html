@@ -17,64 +17,57 @@
       margin: 0;
       background: var(--grau);
       color: var(--text);
-      padding: 0;
+      padding: 1rem;
     }
-
-    /* Header */
     header {
       background: var(--rot);
       color: var(--weiß);
       padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:1rem;
+      border-radius:6px;
+      flex-wrap: wrap;
+      text-align: center;
     }
-    header img.logo { height: 50px; }
-    header h1 { margin: 0; font-size: 1.25rem; text-align: center; }
-
+    header img { height:42px; }
     main {
-      max-width: 680px;
-      margin: 1.5rem auto;
-      background: var(--weiß);
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      max-width:680px;
+      margin:1.25rem auto;
+      background:var(--weiß);
+      padding:1.25rem;
+      border-radius:8px;
+      box-shadow:0 6px 20px rgba(0,0,0,0.06);
     }
-
-    h2 { margin: 0 0 0.5rem 0; font-size: 1.25rem; }
-
-    label { display: block; margin-top: 0.9rem; font-weight: 600; font-size: 0.95rem; }
+    h1 { margin:0 0 0.5rem 0; font-size:1.25rem; }
+    label { display:block; margin-top:0.9rem; font-weight:600; font-size:0.95rem; }
     input, textarea, button {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.3rem;
-      border: 1px solid #d0d0d0;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-family: inherit;
+      width:100%;
+      padding:0.6rem;
+      margin-top:0.3rem;
+      border:1px solid #d0d0d0;
+      border-radius:6px;
+      font-size:1rem;
+      font-family:inherit;
     }
-    textarea { resize: vertical; min-height: 84px; }
+    textarea { resize:vertical; min-height:84px; }
     button.primary {
-      margin-top: 1rem;
-      background: var(--rot);
-      color: var(--weiß);
-      border: none;
-      cursor: pointer;
-      padding: 0.85rem;
-      font-weight: 600;
+      margin-top:1rem;
+      background:var(--rot);
+      color:var(--weiß);
+      border:none;
+      cursor:pointer;
+      padding:0.85rem;
+      font-weight:600;
     }
-    .muted { color: #666; font-size: 0.95rem; margin-top: 0.5rem; }
+    .muted { color:#666; font-size:0.95rem; margin-top:0.5rem; }
     #feedback, #codeFeedback {
-      margin-top: 1rem;
-      padding: 0.85rem;
-      border-radius: 6px;
-      display: none;
-      font-weight: 600;
+      margin-top:1rem;
+      padding:0.85rem;
+      border-radius:6px;
+      display:none;
+      font-weight:600;
     }
     #feedback.success { background:#e6ffe6; border:1px solid #66cc66; color:#006600; display:block; }
     #feedback.error { background:#ffe6e6; border:1px solid #cc6666; color:#660000; display:block; }
@@ -89,13 +82,15 @@
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="FC Badenia Logo" class="logo">
-    <h1>FC Badenia 1912 St. Ilgen e. V.</h1>
+    <img src="logo.png" alt="FC Badenia Logo" onerror="this.style.display='none'"/>
+    <h1>Kündigung FC Badenia 1912 St. Ilgen e. V.</h1>
   </header>
 
   <main>
+    <!-- Schritt 1: Formular -->
     <section id="stepForm">
       <h2>Kündigungsformular</h2>
+
       <form id="kuendigungForm" autocomplete="off">
         <label for="vorname">Vorname Mitglied</label>
         <input id="vorname" name="vorname" type="text" required>
@@ -122,12 +117,14 @@
 
         <button class="primary" type="submit">Kündigung absenden</button>
       </form>
+
       <div id="feedback" role="status"></div>
     </section>
 
+    <!-- Schritt 2: Code Eingabe -->
     <section id="stepCode" style="display:none;">
       <h2>Bestätigungscode eingeben</h2>
-      <div class="muted">Wir haben Ihnen per E-Mail einen 6-stelligen Code gesendet.</div>
+      <div class="muted">Wir haben Ihnen per E-Mail einen 6-stelligen Code gesendet. Bitte tragen Sie ihn hier ein, um die Kündigung zu bestätigen.</div>
 
       <label for="codeInput">6-stelliger Code</label>
       <input id="codeInput" type="text" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code">
@@ -142,26 +139,29 @@
 
       <div id="codeFeedback" role="status"></div>
     </section>
+
   </main>
 
   <script>
-    // --- Geburtstagskalender auf Vergangenheit ---
+    // Hilfsfunktionen
+    function berechneAlter(datum) {
+      const heute = new Date();
+      const geb = new Date(datum);
+      let alter = heute.getFullYear() - geb.getFullYear();
+      const m = heute.getMonth() - geb.getMonth();
+      if (m < 0 || (m === 0 && heute.getDate() < geb.getDate())) alter--;
+      return alter;
+    }
+
+    // max heute für Date-Picker setzen
     const gebInput = document.getElementById("geburtsdatum");
-    const heute = new Date();
-    gebInput.max = heute.toISOString().split("T")[0]; // max = heute
+    const todayStr = new Date().toISOString().split("T")[0];
+    gebInput.max = todayStr;
 
     const elternLabel = document.getElementById("elternLabel");
     const elternName = document.getElementById("elternName");
 
-    function berechneAlter(datum) {
-      const geb = new Date(datum);
-      let alter = heute.getFullYear() - geb.getFullYear();
-      const m = heute.getMonth() - geb.getMonth();
-      if (m < 0 || (m===0 && heute.getDate()<geb.getDate())) alter--;
-      return alter;
-    }
-
-    gebInput.addEventListener("change", function() {
+    gebInput.addEventListener("change", function () {
       const alter = berechneAlter(this.value);
       if (alter < 18) {
         elternLabel.style.display = "block";
@@ -175,7 +175,6 @@
       }
     });
 
-    // --- Formular-Submit & Code-Logik ---
     const form = document.getElementById("kuendigungForm");
     const feedback = document.getElementById("feedback");
     const stepForm = document.getElementById("stepForm");
@@ -184,10 +183,13 @@
     const codeFeedback = document.getElementById("codeFeedback");
     const resendBtn = document.getElementById("resendBtn");
 
+    // Backend-URL für Render
+    const BACKEND_URL = "https://kuendigung.onrender.com";
+
+    // Nach dem Absenden: server erstellt Code & sendet E-Mail
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       feedback.style.display = "none";
-
       const data = {
         mitglied_vorname: form.vorname.value.trim(),
         mitglied_nachname: form.nachname.value.trim(),
@@ -199,7 +201,7 @@
       };
 
       try {
-        const resp = await fetch("https://kuendigung.onrender.com/submit", {
+        const resp = await fetch(`${BACKEND_URL}/submit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
@@ -209,10 +211,12 @@
         if (result.ok) {
           stepForm.style.display = "none";
           stepCode.style.display = "block";
+          codeFeedback.textContent = "Ein Code wurde per E-Mail versandt. Gib ihn bitte hier ein.";
           codeFeedback.style.display = "block";
           codeFeedback.style.background = "#eaf6ff";
           codeFeedback.style.color = "#003a6b";
-          codeFeedback.textContent = "Ein Code wurde per E-Mail versandt. Gib ihn bitte hier ein.";
+          codeFeedback.style.padding = "8px";
+          codeFeedback.style.borderRadius = "6px";
         } else {
           feedback.className = "error";
           feedback.textContent = "❌ " + (result.message || "Fehler.");
@@ -226,31 +230,37 @@
       }
     });
 
+    // Code bestätigen
     document.getElementById("verifyBtn").addEventListener("click", async () => {
       const code = codeInput.value.trim();
       codeFeedback.style.display = "none";
 
       if (!/^[0-9]{6}$/.test(code)) {
         codeFeedback.style.display = "block";
+        codeFeedback.textContent = "Bitte gib einen 6-stelligen Code ein.";
         codeFeedback.style.background = "#ffecec";
         codeFeedback.style.color = "#660000";
-        codeFeedback.textContent = "Bitte gib einen 6-stelligen Code ein.";
+        codeFeedback.style.padding = "8px";
+        codeFeedback.style.borderRadius = "6px";
         return;
       }
 
       try {
-        const resp = await fetch("https://kuendigung.onrender.com/verify-code", {
+        const resp = await fetch(`${BACKEND_URL}/verify-code`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code })
         });
+
         const result = await resp.json();
 
-        codeFeedback.style.display = "block";
         if (result.ok) {
+          codeFeedback.style.display = "block";
+          codeFeedback.textContent = "✅ Kündigung eingegangen. Sie erhalten eine Bestätigungs-E-Mail.";
           codeFeedback.style.background = "#e6ffe6";
           codeFeedback.style.color = "#006600";
-          codeFeedback.textContent = "✅ Kündigung eingegangen. Sie erhalten eine Bestätigungs-E-Mail.";
+          codeFeedback.style.padding = "8px";
+          codeFeedback.style.borderRadius = "6px";
           setTimeout(() => {
             stepCode.style.display = "none";
             stepForm.style.display = "block";
@@ -260,18 +270,24 @@
             codeFeedback.style.display = "none";
           }, 2500);
         } else {
+          codeFeedback.style.display = "block";
+          codeFeedback.textContent = "❌ " + (result.message || "Ungültiger Code.");
           codeFeedback.style.background = "#ffecec";
           codeFeedback.style.color = "#660000";
-          codeFeedback.textContent = "❌ " + (result.message || "Ungültiger Code.");
+          codeFeedback.style.padding = "8px";
+          codeFeedback.style.borderRadius = "6px";
         }
       } catch (err) {
         codeFeedback.style.display = "block";
+        codeFeedback.textContent = "❌ Technischer Fehler beim Prüfen des Codes.";
         codeFeedback.style.background = "#ffecec";
         codeFeedback.style.color = "#660000";
-        codeFeedback.textContent = "❌ Technischer Fehler beim Prüfen des Codes.";
+        codeFeedback.style.padding = "8px";
+        codeFeedback.style.borderRadius = "6px";
       }
     });
 
+    // Code erneut senden
     resendBtn.addEventListener("click", async () => {
       const formData = {
         mitglied_vorname: form.vorname.value.trim(),
@@ -283,8 +299,9 @@
         elternName: form.elternName.value.trim(),
         resend: true
       };
+
       try {
-        const resp = await fetch("https://kuendigung.onrender.com/submit", {
+        const resp = await fetch(`${BACKEND_URL}/submit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData)
