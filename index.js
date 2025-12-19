@@ -29,7 +29,21 @@ function logEvent(type, message, meta = {}) {
 
 // --- CORS & JSON ---
 app.use(express.json());
-app.use(cors({ origin: ["https://fcb1912.github.io", "http://localhost:5500", "null", "http://127.0.0.1:5500"] }));
+app.use(cors({
+  origin: [
+    "https://kuendigung.fc-badenia-stilgen.de",
+    "https://fc-badenia-stilgen.de",
+    "https://www.fc-badenia-stilgen.de",
+    "https://fcb1912.github.io",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500"
+  ],
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+
+app.options("*", cors());
+
 
 // --- In-Memory Speicher für Codes ---
 const tokens = new Map();
@@ -230,3 +244,4 @@ app.listen(PORT, () => {
   logEvent("INFO", `Server gestartet auf Port ${PORT}`, { port: PORT });
   console.log(`✅ Server läuft auf Port ${PORT}`);
 });
+
